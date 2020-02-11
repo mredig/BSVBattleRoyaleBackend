@@ -8,13 +8,27 @@ final class User: SQLiteModel {
 	/// Can be `nil` if the user has not been saved yet.
 	var id: Int?
 	var username: String
-	var passwordHash: String
+	var password: String
+
+	var roomID = 0
 	
 	/// Creates a new `User`.
 	init(id: Int? = nil, username: String, passwordHash: String) {
 		self.id = id
-		self.passwordHash = passwordHash
+		self.password = passwordHash
 		self.username = username
+	}
+}
+
+
+extension User: Hashable {
+	func hash(into hasher: inout Hasher) {
+		hasher.combine(id)
+		hasher.combine(username)
+	}
+
+	static func == (lhs: User, rhs: User) -> Bool {
+		rhs.username == lhs.username
 	}
 }
 
@@ -27,7 +41,7 @@ extension User: PasswordAuthenticatable {
 	
 	/// See `PasswordAuthenticatable`.
 	static var passwordKey: WritableKeyPath<User, String> {
-		return \.passwordHash
+		return \.password
 	}
 }
 
@@ -44,7 +58,8 @@ extension User: Migration {
 		return SQLiteDatabase.create(User.self, on: conn) { builder in
 			builder.field(for: \.id, isIdentifier: true)
 			builder.field(for: \.username)
-			builder.field(for: \.passwordHash)
+			builder.field(for: \.password)
+			builder.field(for: \.roomID)
 			builder.unique(on: \.username)
 		}
 	}

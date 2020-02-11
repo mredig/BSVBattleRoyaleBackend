@@ -4,16 +4,26 @@ import FluentSQLite
 
 /// Creates new users and logs them in.
 final class UserController {
+
+	// MARK: - Routes
 	/// Logs a user in, returning a token for accessing protected endpoints.
 	func login(_ req: Request) throws -> Future<UserToken> {
-		// get user auth'd by basic auth middleware
-		let user = try req.requireAuthenticated(User.self)
-
-		// create new token for this user
-		let token = try UserToken.create(userID: user.requireID())
-
-		// save and return token
-		return token.save(on: req)
+		return try req.content.decode(User.self).flatMap { decodedUser -> Future<UserToken> in
+			User.query(on: req)
+				.filter(\.username == decodedUser.username)
+				.first().flatMap { fetchedUser in
+					guard let existingUser = fetchedUser else {
+						throw Abort(HTTPStatus.notFound)
+					}
+					let hasher = try req.make(BCryptDigest.self)
+					if try hasher.verify(decodedUser.password, created: existingUser.password) {
+						let token = try UserToken.create(userID: existingUser.requireID())
+						return token.save(on: req)
+					} else {
+						throw Abort(HTTPStatus.unauthorized)
+					}
+			}
+		}
 	}
 
 	/// Creates a new user.
@@ -45,6 +55,12 @@ final class UserController {
 
 		// returns a user response
 		return try UserResponse(id: user.requireID(), username: user.username)
+	}
+
+	// MARK: - Other
+	func resetPlayerRooms() throws {
+//		User.query(on: )
+
 	}
 }
 
