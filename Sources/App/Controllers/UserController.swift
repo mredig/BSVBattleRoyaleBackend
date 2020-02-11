@@ -8,7 +8,7 @@ final class UserController {
 	// MARK: - Routes
 	/// Logs a user in, returning a token for accessing protected endpoints.
 	func login(_ req: Request) throws -> Future<UserToken> {
-		return try req.content.decode(User.self).flatMap { decodedUser -> Future<UserToken> in
+		return try req.content.decode(CreateUserRequest.self).flatMap { decodedUser -> Future<UserToken> in
 			User.query(on: req)
 				.filter(\.username == decodedUser.username)
 				.first().flatMap { fetchedUser in
@@ -70,7 +70,7 @@ final class UserController {
 struct CreateUserRequest: Content {
 	let username: String
 	let password: String
-	let passwordVerify: String
+	let passwordVerify: String?
 }
 
 /// Public representation of user data.
