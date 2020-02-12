@@ -6,7 +6,7 @@ public func app(_ env: Environment) throws -> Application {
 	var env = env
 	var services = Services.default()
 
-	let connectionController = ConnectionController()
+	let connectionController = WSConnectionController()
 
 	try configure(&config, &env, &services, connectionController: connectionController)
 	let app = try Application(config: config, environment: env, services: services)
