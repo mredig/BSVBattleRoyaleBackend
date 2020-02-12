@@ -11,31 +11,55 @@ import Foundation
 
 class RoomController {
 	var roomLimit: Int
+	var myRNG = MyRNG()
 
-	var rooms = [Int: Room]()
+	private var _rooms: [Int: Room]?
+	var rooms: [Int: Room] {
+		get {
+			if _rooms == nil {
+				generateRooms(seed: self.startingSeed)
+			}
+			return _rooms!
+		}
+		set {
+			_rooms = newValue
+		}
+	}
 	var occupiedRooms = Set<Room>()
 	var emptyRooms = Set<Room>()
 	var roomCoordinates = Set<CGPoint>()
 	var allPlayers = Set<User>()
 
-	init(roomLimit: Int, seed: UInt64 = UInt64(CFAbsoluteTimeGetCurrent() * 10000)) {
+	private var startingSeed: UInt64
+	let userController: UserController
+
+	init(roomLimit: Int, seed: UInt64 = UInt64(CFAbsoluteTimeGetCurrent() * 10000), userController: UserController) {
 		self.roomLimit = roomLimit
 
-		generateRooms(seed: seed)
+		self.startingSeed = seed
+		self.userController = userController
 	}
 
 	func resetRooms() {
-		rooms.removeAll()
+		_rooms = [Int: Room]()
 		occupiedRooms.removeAll()
 		emptyRooms.removeAll()
 		roomCoordinates.removeAll()
 		allPlayers.removeAll()
 
 		// reset players
+		do {
+			try userController.resetPlayerRooms()
+		} catch {
+			print("There was an error resetting player rooms: \(error)")
+		}
 	}
 
 	func generateRooms(seed: UInt64) {
-//		User.mak
+		resetRooms()
+
+
+
 	}
 }
 

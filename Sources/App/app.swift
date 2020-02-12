@@ -7,9 +7,10 @@ public func app(_ env: Environment) throws -> Application {
 	var services = Services.default()
 
 	let connectionController = WSConnectionController()
+	let userController = UserController()
 
-	try configure(&config, &env, &services, connectionController: connectionController)
+	try configure(&config, &env, &services, connectionController: connectionController, userController: userController)
 	let app = try Application(config: config, environment: env, services: services)
-	try boot(app)
+	try boot(app, userController: userController)
 	return app
 }

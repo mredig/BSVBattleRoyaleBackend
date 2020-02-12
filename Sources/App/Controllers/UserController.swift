@@ -3,7 +3,9 @@ import Vapor
 import FluentSQLite
 
 /// Creates new users and logs them in.
-final class UserController {
+final public class UserController {
+
+	var app: Application?
 
 	// MARK: - Routes
 	/// Logs a user in, returning a token for accessing protected endpoints.
@@ -45,7 +47,7 @@ final class UserController {
 				.save(on: req)
 		}.map { user in
 			// map to public user response (omits password hash)
-			return try UserResponse(id: user.requireID(), username: user.username)
+			return try UserResponse(id: user.requireID(), username: user.username, roomID: user.roomID)
 		}
 	}
 
@@ -54,13 +56,32 @@ final class UserController {
 		let user = try req.requireAuthenticated(User.self)
 
 		// returns a user response
-		return try UserResponse(id: user.requireID(), username: user.username)
+		return try UserResponse(id: user.requireID(), username: user.username, roomID: user.roomID)
 	}
 
 	// MARK: - Other
+	/// currently this doesnt work
 	func resetPlayerRooms() throws {
-//		User.query(on: )
+		guard let app = app else { throw VaporError.init(identifier: "com.bsv.noApp", reason: "App is nil in UserController") }
+		let connection = try app.newConnection(to: .sqlite).wait()
 
+		defer { connection.close() }
+
+		let users = try User.query(on: connection).all().wait()
+
+		for user in users {
+			user.roomID = Int.random(in: 0...10000)
+			_ = user.update(on: connection)
+		}
+
+//		connection.
+//		_ = User.query(on: connection).chunk(max: 50) { users in
+//			try users.forEach {
+//				$0.roomID = Int.random(in: 0...10)
+//				try $0.update(on: connection).wait()
+////				_ = try $0.save(on: connection).wait()
+//			}
+//		}
 	}
 }
 
@@ -79,4 +100,5 @@ struct UserResponse: Content {
 	/// Not optional since we only return users that exist in the DB.
 	var id: Int
 	var username: String
+	let roomID: Int
 }
