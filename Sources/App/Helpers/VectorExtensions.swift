@@ -96,6 +96,25 @@ extension CGAffineTransform {
 	}
 }
 
+#if os(Linux)
+typealias CGVector = CGPoint
+
+extension CGPoint {
+	var dx: CGFloat {
+		get { x }
+		set { x = newValue }
+	}
+	var dy: CGFloat {
+		get { y }
+		set { y = newValue }
+	}
+
+	init(dx: CGFloat, dy: CGFloat) {
+		self.init(x: dx, y: dy)
+	}
+}
+#endif
+
 extension CGVector {
 	static func + (lhs: CGVector, rhs: CGVector) -> CGVector {
 		CGVector(dx: lhs.dx + rhs.dx, dy: lhs.dy + rhs.dy)
