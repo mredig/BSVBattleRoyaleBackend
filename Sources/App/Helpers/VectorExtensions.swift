@@ -90,11 +90,13 @@ extension CGPoint: Hashable {
 	}
 }
 
+#if !os(Linux)
 extension CGAffineTransform {
 	var offset: CGPoint {
 		CGPoint(x: tx, y: ty)
 	}
 }
+#endif
 
 #if os(Linux)
 typealias CGVector = CGPoint

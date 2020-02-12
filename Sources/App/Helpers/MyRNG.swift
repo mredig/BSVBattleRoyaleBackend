@@ -32,3 +32,10 @@ class MyRNG {
 		return array[Int(randomNumber(max: maxValue))]
 	}
 }
+
+
+#if os(Linux)
+func CFAbsoluteTimeGetCurrent() -> TimeInterval {
+	Date().timeIntervalSinceReferenceDate
+}
+#endif
