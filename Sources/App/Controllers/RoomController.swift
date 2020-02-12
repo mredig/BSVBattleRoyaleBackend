@@ -7,6 +7,10 @@
 
 import Foundation
 
+fileprivate var absoluteCurrentTime: TimeInterval {
+	return Date().timeIntervalSinceReferenceDate
+}
+
 class RoomController {
 	var roomLimit: Int
 
@@ -16,7 +20,7 @@ class RoomController {
 	var roomCoordinates = Set<CGPoint>()
 	var allPlayers = Set<User>()
 
-	init(roomLimit: Int, seed: UInt64 = UInt64(CFAbsoluteTimeGetCurrent() * 10000)) {
+	init(roomLimit: Int, seed: UInt64 = UInt64(absoluteCurrentTime * 10000)) {
 		self.roomLimit = roomLimit
 
 		generateRooms(seed: seed)
