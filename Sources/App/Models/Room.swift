@@ -88,6 +88,7 @@ extension Room: Equatable {
 
 extension Room {
 	var representation: RoomRepresentation {
-		RoomRepresentation(name: name, position: position, id: id, connectedRooms: rooms.mapValues { $0.id } )
+		let rep = RoomRepresentation(name: name, position: position, id: id, northRoomID: rooms[.north]?.id, southRoomID: rooms[.south]?.id, eastRoomID: rooms[.east]?.id, westRoomID: rooms[.west]?.id)
+		return rep
 	}
 }

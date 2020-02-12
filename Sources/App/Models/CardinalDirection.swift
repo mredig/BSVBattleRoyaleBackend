@@ -6,8 +6,9 @@
 //
 
 import Foundation
+import Vapor
 
-enum CardinalDirection: Int, Comparable, Codable {
+enum CardinalDirection: Int, Comparable, Codable, Hashable {
 	case north
 	case east
 	case south
@@ -24,6 +25,54 @@ enum CardinalDirection: Int, Comparable, Codable {
 		case .south:
 			return .north
 		}
+	}
+
+	var stringValue: String {
+		switch self {
+		case .north:
+			return "north"
+		case .south:
+			return "south"
+		case .east:
+			return "east"
+		case .west:
+			return "west"
+		}
+	}
+
+	init(from decoder: Decoder) throws {
+		let container = try decoder.singleValueContainer()
+		let rawValue = try container.decode(String.self)
+		let lcValue = rawValue.lowercased()
+
+		guard let decoded = CardinalDirection(stringValue: lcValue) else {
+			throw VaporError.init(identifier: "Direction Decoding Error", reason: "\(lcValue) did not match any cardinal directions.")
+		}
+		self = decoded
+	}
+
+	func encode(to encoder: Encoder) throws {
+		var container = encoder.singleValueContainer()
+		try container.encode(stringValue)
+	}
+
+	init?(stringValue: String) {
+		switch stringValue.lowercased() {
+		case "north":
+			self = .north
+		case "south":
+			self = .south
+		case "east":
+			self = .east
+		case "west":
+			self = .west
+		default:
+			return nil
+		}
+	}
+
+	func hash(into hasher: inout Hasher) {
+		hasher.combine(stringValue)
 	}
 
 	static func < (lhs: CardinalDirection, rhs: CardinalDirection) -> Bool {

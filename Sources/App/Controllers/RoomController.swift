@@ -139,7 +139,11 @@ struct RoomRepresentation: Content {
 	let name: String
 	let position: CGPoint
 	let id: Int
-	let connectedRooms: [CardinalDirection: Int]
+	let northRoomID: Int?
+	let southRoomID: Int?
+	let eastRoomID: Int?
+	let westRoomID: Int?
+	let example = [ CardinalDirection.north: 5, CardinalDirection.south: 4]
 }
 
 struct RoomCollection: Content {
