@@ -118,6 +118,7 @@ extension CGPoint {
 #endif
 
 extension CGVector {
+	#if !os(Linux)
 	static func + (lhs: CGVector, rhs: CGVector) -> CGVector {
 		CGVector(dx: lhs.dx + rhs.dx, dy: lhs.dy + rhs.dy)
 	}
@@ -125,6 +126,7 @@ extension CGVector {
 	static func * (lhs: CGVector, rhs: CGFloat) -> CGVector {
 		CGVector(dx: lhs.dx * rhs, dy: lhs.dy * rhs)
 	}
+	#endif
 
 	var normalized: CGVector {
 		guard !(dx == dy && dx == 0) else { return CGVector(dx: 0, dy: 1) }
