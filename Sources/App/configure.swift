@@ -3,7 +3,7 @@ import FluentSQLite
 import Vapor
 
 /// Called before your application initializes.
-public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services, connectionController: WSConnectionController, userController: UserController) throws {
+public func configure(_ config: inout Config, _ env: inout Environment, _ services: inout Services, connectionController: WSConnectionController, userController: UserController, roomController: RoomController) throws {
 	// Register providers first
 	try services.register(FluentSQLiteProvider())
 	try services.register(AuthenticationProvider())
@@ -11,7 +11,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
 	// Register routes to the router
 	let router = EngineRouter.default()
 	let wss = NIOWebSocketServer.default()
-	try routes(router, userController: userController)
+	try routes(router, userController: userController, roomController: roomController)
 	try connectionController.setupRoutes(wss)
 	services.register(router, as: Router.self)
 	services.register(wss, as: WebSocketServer.self)

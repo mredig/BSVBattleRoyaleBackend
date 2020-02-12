@@ -85,3 +85,9 @@ extension Room: Equatable {
 			lhs.occupied == rhs.occupied
 	}
 }
+
+extension Room {
+	var representation: RoomRepresentation {
+		RoomRepresentation(name: name, position: position, id: id, connectedRooms: rooms.mapValues { $0.id } )
+	}
+}

@@ -6,10 +6,9 @@
 //
 
 import Foundation
+import Vapor
 
-
-
-class RoomController {
+public class RoomController {
 	var roomLimit: Int
 	var myRNG = MyRNG()
 
@@ -128,15 +127,29 @@ class RoomController {
 	}
 }
 
+// MARK: - Route response
+extension RoomController {
+	func getOverworld(_ req: Request) throws -> Future<RoomCollection> {
+		return req.future(RoomCollection(rooms: rooms.mapValues { $0.representation }, roomCoordinates: roomCoordinates, spawnRoom: spawnRoom.id))
+	}
+}
 
-//class RoomCollection: Codable {
-//	let rooms: [Int: Room]
-//	let roomCoordinates: Set<CGPoint>
-//	let spawnRoom: Int
-//
-//	init(rooms: [Int: Room], roomCoordinates: Set<CGPoint>, spawnRoom: Int) {
-//		self.rooms = rooms
-//		self.roomCoordinates = roomCoordinates
-//		self.spawnRoom = spawnRoom
-//	}
-//}
+
+struct RoomRepresentation: Content {
+	let name: String
+	let position: CGPoint
+	let id: Int
+	let connectedRooms: [CardinalDirection: Int]
+}
+
+struct RoomCollection: Content {
+	let rooms: [Int: RoomRepresentation]
+	let roomCoordinates: Set<CGPoint>
+	let spawnRoom: Int
+
+	init(rooms: [Int: RoomRepresentation], roomCoordinates: Set<CGPoint>, spawnRoom: Int) {
+		self.rooms = rooms
+		self.roomCoordinates = roomCoordinates
+		self.spawnRoom = spawnRoom
+	}
+}

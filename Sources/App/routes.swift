@@ -2,7 +2,7 @@ import Crypto
 import Vapor
 
 /// Register your application's routes here.
-public func routes(_ router: Router, userController: UserController) throws {
+public func routes(_ router: Router, userController: UserController, roomController: RoomController) throws {
 	// public routes
 	router.post("register", use: userController.create)
 
@@ -17,4 +17,5 @@ public func routes(_ router: Router, userController: UserController) throws {
 	// example using another controller
 //	let todoController = TodoController()
 //	bearer.post("todos", use: todoController.create)
+	router.get("overworld", use: roomController.getOverworld)
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum CardinalDirection: Int, Comparable {
+enum CardinalDirection: Int, Comparable, Codable {
 	case north
 	case east
 	case south
