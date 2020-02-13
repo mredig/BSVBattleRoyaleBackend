@@ -11,6 +11,7 @@ import Vapor
 public class RoomController {
 	var roomLimit: Int
 	var myRNG = MyRNG()
+	private var startingSeed: UInt64
 
 	let roomSize: CGFloat = 720
 	var roomMid: CGFloat { roomSize / 2 }
@@ -34,7 +35,6 @@ public class RoomController {
 
 	var spawnRoom = Room(id: 0, position: .zero, name: "Spawn Room")
 
-	private var startingSeed: UInt64
 	let userController: UserController
 
 	init(roomLimit: Int, seed: UInt64 = UInt64(CFAbsoluteTimeGetCurrent() * 10000), userController: UserController) {
@@ -170,7 +170,7 @@ public class RoomController {
 // MARK: - Route response
 extension RoomController {
 	func getOverworld(_ req: Request) throws -> Future<RoomCollection> {
-		return req.future(RoomCollection(rooms: rooms.mapValues { $0.representation }, roomCoordinates: roomCoordinates, spawnRoom: spawnRoom.id))
+		return req.future(RoomCollection(rooms: rooms.mapValues { $0.representation }, roomCoordinates: roomCoordinates, spawnRoom: spawnRoom.id, seed: startingSeed))
 	}
 
 	func initializePlayer(_ req: Request) throws -> Future<UserResponse> {
@@ -202,8 +202,11 @@ extension RoomController {
 				throw HTTPError(identifier: "Direction not valid", reason: "perhaps room is not connected")
 			}
 			try self.spawn(player: user, in: newRoom, from: fromDirection)
-			return user.save(on: req).flatMap { user -> EventLoopFuture<RoomChangeInfo> in
-				return req.future(RoomChangeInfo(currentRoom: newRoom.id, fromDirection: fromDirection, spawnLocation: user.location))
+			return user.save(on: req).map { user -> RoomChangeInfo in
+				return RoomChangeInfo(currentRoom: newRoom.id,
+									  fromDirection: fromDirection,
+									  spawnLocation: user.location,
+									  otherPlayersInRoom: newRoom.players.map { $0.playerID })
 			}
 		}
 	}
@@ -213,6 +216,7 @@ struct RoomChangeInfo: Content {
 	let currentRoom: Int
 	let fromDirection: CardinalDirection
 	let spawnLocation: CGPoint
+	let otherPlayersInRoom: [String]
 }
 
 struct RoomRepresentation: Content {
@@ -229,12 +233,7 @@ struct RoomCollection: Content {
 	let rooms: [Int: RoomRepresentation]
 	let roomCoordinates: Set<CGPoint>
 	let spawnRoom: Int
-
-	init(rooms: [Int: RoomRepresentation], roomCoordinates: Set<CGPoint>, spawnRoom: Int) {
-		self.rooms = rooms
-		self.roomCoordinates = roomCoordinates
-		self.spawnRoom = spawnRoom
-	}
+	let seed: UInt64
 }
 
 struct InitRepresentation: Content {
