@@ -169,8 +169,13 @@ public class RoomController {
 
 // MARK: - Route response
 extension RoomController {
-	func getOverworld(_ req: Request) throws -> Future<RoomCollection> {
-		return req.future(RoomCollection(rooms: rooms.mapValues { $0.representation }, roomCoordinates: roomCoordinates, spawnRoom: spawnRoom.id, seed: startingSeed))
+	func getOverworld(_ req: Request) throws -> Response {
+		let res = req.response()
+		let encoder = JSONEncoder()
+		encoder.outputFormatting = [.sortedKeys]
+		try res.content.encode(json: RoomCollection(rooms: rooms.mapValues { $0.representation }, roomCoordinates: roomCoordinates, spawnRoom: spawnRoom.id, seed: startingSeed), using: encoder)
+		return res
+//		return req.future(RoomCollection(rooms: rooms.mapValues { $0.representation }, roomCoordinates: roomCoordinates, spawnRoom: spawnRoom.id, seed: startingSeed))
 	}
 
 	func initializePlayer(_ req: Request) throws -> Future<UserResponse> {
