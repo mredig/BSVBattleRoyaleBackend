@@ -12,6 +12,9 @@ public class RoomController {
 	var roomLimit: Int
 	var myRNG = MyRNG()
 
+	let roomSize: CGFloat = 720
+	var roomMid: CGFloat { roomSize / 2 }
+
 	private var _rooms: [Int: Room]?
 	var rooms: [Int: Room] {
 		get {
@@ -131,6 +134,13 @@ public class RoomController {
 extension RoomController {
 	func getOverworld(_ req: Request) throws -> Future<RoomCollection> {
 		return req.future(RoomCollection(rooms: rooms.mapValues { $0.representation }, roomCoordinates: roomCoordinates, spawnRoom: spawnRoom.id))
+	}
+
+	func initializePlayer(_ req: Request) throws -> Future<UserResponse> {
+		let user = try req.requireAuthenticated(User.self)
+
+		user.location = CGPoint(x: roomMid, y: roomMid)
+		return user.update(on: req).map { $0.userResponse }
 	}
 }
 

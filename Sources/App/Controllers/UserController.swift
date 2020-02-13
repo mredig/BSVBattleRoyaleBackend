@@ -47,7 +47,7 @@ final public class UserController {
 				.save(on: req)
 		}.map { user in
 			// map to public user response (omits password hash)
-			return try UserResponse(id: user.requireID(), username: user.username, roomID: user.roomID)
+			return try UserResponse(id: user.requireID(), username: user.username, roomID: user.roomID, spawnLocation: user.location)
 		}
 	}
 
@@ -56,7 +56,7 @@ final public class UserController {
 		let user = try req.requireAuthenticated(User.self)
 
 		// returns a user response
-		return try UserResponse(id: user.requireID(), username: user.username, roomID: user.roomID)
+		return try UserResponse(id: user.requireID(), username: user.username, roomID: user.roomID, spawnLocation: user.location)
 	}
 
 	// MARK: - Other
@@ -101,4 +101,11 @@ struct UserResponse: Content {
 	var id: Int
 	var username: String
 	let roomID: Int
+	let spawnLocation: CGPoint
+}
+
+extension User {
+	var userResponse: UserResponse {
+		UserResponse(id: id ?? -1, username: username, roomID: roomID, spawnLocation: location)
+	}
 }

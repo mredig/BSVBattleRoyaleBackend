@@ -14,6 +14,8 @@ public func routes(_ router: Router, userController: UserController, roomControl
 	let bearer = router.grouped(User.tokenAuthMiddleware())
 	bearer.get("profile", use: userController.profile)
 
+	bearer.post("initialize", use: roomController.initializePlayer)
+
 	// example using another controller
 //	let todoController = TodoController()
 //	bearer.post("todos", use: todoController.create)

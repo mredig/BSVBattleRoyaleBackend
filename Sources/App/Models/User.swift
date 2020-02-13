@@ -10,6 +10,17 @@ final class User: SQLiteModel {
 	var username: String
 	var password: String
 
+	private var xLocation: Double
+	private var yLocation: Double
+
+	var location: CGPoint {
+		get { CGPoint(x: xLocation, y: yLocation) }
+		set {
+			xLocation = Double(newValue.x)
+			yLocation = Double(newValue.y)
+		}
+	}
+
 	var roomID = 0
 	
 	/// Creates a new `User`.
@@ -17,6 +28,8 @@ final class User: SQLiteModel {
 		self.id = id
 		self.password = passwordHash
 		self.username = username
+		self.xLocation = 0
+		self.yLocation = 0
 	}
 }
 
@@ -60,6 +73,8 @@ extension User: Migration {
 			builder.field(for: \.username)
 			builder.field(for: \.password)
 			builder.field(for: \.roomID)
+			builder.field(for: \.xLocation)
+			builder.field(for: \.yLocation)
 			builder.unique(on: \.username)
 		}
 	}
