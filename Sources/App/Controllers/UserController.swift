@@ -47,16 +47,8 @@ final public class UserController {
 				.save(on: req)
 		}.map { user in
 			// map to public user response (omits password hash)
-			return try UserResponse(id: user.requireID(), username: user.username, roomID: user.roomID, spawnLocation: user.location)
+			return try UserResponse(id: user.requireID(), username: user.username, roomID: user.roomID, spawnLocation: user.location, avatar: user.avatar)
 		}
-	}
-
-	func profile(_ req: Request) throws -> UserResponse {
-		// confirms token auth
-		let user = try req.requireAuthenticated(User.self)
-
-		// returns a user response
-		return try UserResponse(id: user.requireID(), username: user.username, roomID: user.roomID, spawnLocation: user.location)
 	}
 
 	// MARK: - Other
@@ -91,10 +83,11 @@ struct UserResponse: Content {
 	var username: String
 	let roomID: Int
 	let spawnLocation: CGPoint
+	let avatar: Int
 }
 
 extension User {
 	var userResponse: UserResponse {
-		UserResponse(id: id ?? -1, username: username, roomID: roomID, spawnLocation: location)
+		UserResponse(id: id ?? -1, username: username, roomID: roomID, spawnLocation: location, avatar: avatar)
 	}
 }

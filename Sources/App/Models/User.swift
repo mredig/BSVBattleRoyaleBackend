@@ -9,6 +9,7 @@ final class User: SQLiteModel {
 	var id: Int?
 	var username: String
 	var password: String
+	var avatar = 0
 
 	private var xLocation: Double
 	private var yLocation: Double
@@ -20,6 +21,9 @@ final class User: SQLiteModel {
 			yLocation = Double(newValue.y)
 		}
 	}
+	lazy var destination: CGPoint = {
+		location
+	}()
 
 	var roomID = -1
 	
@@ -75,6 +79,7 @@ extension User: Migration {
 			builder.field(for: \.roomID)
 			builder.field(for: \.xLocation)
 			builder.field(for: \.yLocation)
+			builder.field(for: \.avatar)
 			builder.unique(on: \.username)
 		}
 	}

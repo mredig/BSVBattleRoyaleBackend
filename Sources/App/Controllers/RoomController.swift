@@ -30,7 +30,7 @@ public class RoomController {
 	var occupiedRooms = Set<Room>()
 	var emptyRooms = Set<Room>()
 	var roomCoordinates = Set<CGPoint>()
-	var allPlayers = Set<User>()
+	var allPlayers = [Int: User]()
 
 	var spawnRoom = Room(id: 0, position: .zero, name: "Spawn Room")
 
@@ -128,6 +128,43 @@ public class RoomController {
 		let occupiedLocations = [n,s,w,e].filter { roomCoordinates.contains($0) }
 		return occupiedLocations.count == neighborsAllowed
 	}
+
+	func removePlayerFromCurrentRoom(_ player: User) {
+		guard let oldRoom = rooms[player.roomID] else { return }
+		oldRoom.removePlayer(player)
+		if !oldRoom.occupied {
+			occupiedRooms.remove(oldRoom)
+			emptyRooms.insert(oldRoom)
+		}
+	}
+
+	func spawn(player: User, in room: Room?, from direction: CardinalDirection?) throws {
+		removePlayerFromCurrentRoom(player)
+		let newRoom = room ?? spawnRoom
+		occupiedRooms.insert(newRoom)
+		emptyRooms.remove(newRoom)
+
+		try allPlayers[player.requireID()] = player
+		newRoom.addPlayer(player)
+
+		let position: CGPoint
+		if let direction = direction {
+			switch direction {
+			case .east:
+				position = CGPoint(x: roomSize, y: roomMid)
+			case .north:
+				position = CGPoint(x: roomMid, y: roomSize)
+			case .south:
+				position = CGPoint(x: roomMid, y: 0)
+			case .west:
+				position = CGPoint(x: 0, y: roomMid)
+			}
+		} else {
+			position = CGPoint(x: roomMid, y: roomMid)
+		}
+		player.location = position
+		player.destination = position
+	}
 }
 
 // MARK: - Route response
@@ -139,11 +176,44 @@ extension RoomController {
 	func initializePlayer(_ req: Request) throws -> Future<UserResponse> {
 		let user = try req.requireAuthenticated(User.self)
 
-		user.location = CGPoint(x: roomMid, y: roomMid)
-		return user.update(on: req).map { $0.userResponse }
+		let mid = roomMid
+		return try req.content.decode(InitRepresentation.self).flatMap { initRep -> Future<UserResponse> in
+
+			user.location = CGPoint(x: mid, y: mid)
+			user.avatar = initRep.playerAvatar
+			try self.spawn(player: user, in: self.rooms[user.roomID], from: nil)
+			return user.update(on: req).map { $0.userResponse }
+		}
+	}
+
+	func moveToRoom(_ req: Request) throws -> Future<RoomChangeInfo> {
+		let user = try req.requireAuthenticated(User.self)
+
+		return try req.content.decode(MoveRequest.self).flatMap { moveRequest -> Future<RoomChangeInfo> in
+			let currentRoomID = user.roomID
+			let newRoomID = moveRequest.roomID
+			let currentRoom = self.rooms[currentRoomID] ?? self.spawnRoom
+			guard let newRoom = self.rooms[newRoomID] else {
+				// FIXME: there's probably a better error to put here
+				throw HTTPError(identifier: "Invalid Room", reason: "Invalid Room")
+			}
+
+			guard let fromDirection = newRoom.direction(of: currentRoom) else {
+				throw HTTPError(identifier: "Direction not valid", reason: "perhaps room is not connected")
+			}
+			try self.spawn(player: user, in: newRoom, from: fromDirection)
+			return user.save(on: req).flatMap { user -> EventLoopFuture<RoomChangeInfo> in
+				return req.future(RoomChangeInfo(currentRoom: newRoom.id, fromDirection: fromDirection, spawnLocation: user.location))
+			}
+		}
 	}
 }
 
+struct RoomChangeInfo: Content {
+	let currentRoom: Int
+	let fromDirection: CardinalDirection
+	let spawnLocation: CGPoint
+}
 
 struct RoomRepresentation: Content {
 	let name: String
@@ -153,7 +223,6 @@ struct RoomRepresentation: Content {
 	let southRoomID: Int?
 	let eastRoomID: Int?
 	let westRoomID: Int?
-	let example = [ CardinalDirection.north: 5, CardinalDirection.south: 4]
 }
 
 struct RoomCollection: Content {
@@ -166,4 +235,12 @@ struct RoomCollection: Content {
 		self.roomCoordinates = roomCoordinates
 		self.spawnRoom = spawnRoom
 	}
+}
+
+struct InitRepresentation: Content {
+	let playerAvatar: Int
+}
+
+struct MoveRequest: Content {
+	let roomID: Int
 }

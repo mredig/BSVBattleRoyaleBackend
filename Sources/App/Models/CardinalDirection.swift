@@ -58,13 +58,13 @@ enum CardinalDirection: Int, Comparable, Codable, Hashable {
 
 	init?(stringValue: String) {
 		switch stringValue.lowercased() {
-		case "north":
+		case Self.north.stringValue:
 			self = .north
-		case "south":
+		case Self.south.stringValue:
 			self = .south
-		case "east":
+		case Self.east.stringValue:
 			self = .east
-		case "west":
+		case Self.west.stringValue:
 			self = .west
 		default:
 			return nil

@@ -12,9 +12,10 @@ public func routes(_ router: Router, userController: UserController, roomControl
 
 	// bearer / token auth protected routes
 	let bearer = router.grouped(User.tokenAuthMiddleware())
-	bearer.get("profile", use: userController.profile)
+//	bearer.get("profile", use: userController.profile)
 
 	bearer.post("initialize", use: roomController.initializePlayer)
+	bearer.post("move", use: roomController.moveToRoom)
 
 	// example using another controller
 //	let todoController = TodoController()
