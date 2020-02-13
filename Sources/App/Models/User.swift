@@ -10,6 +10,7 @@ final class User: SQLiteModel {
 	var username: String
 	var password: String
 	var avatar = 0
+	var playerID: String = UUID().uuidString
 
 	private var xLocation: Double
 	private var yLocation: Double
@@ -80,6 +81,8 @@ extension User: Migration {
 			builder.field(for: \.xLocation)
 			builder.field(for: \.yLocation)
 			builder.field(for: \.avatar)
+			builder.field(for: \.playerID)
+			builder.unique(on: \.playerID)
 			builder.unique(on: \.username)
 		}
 	}

@@ -47,12 +47,25 @@ final public class UserController {
 				.save(on: req)
 		}.map { user in
 			// map to public user response (omits password hash)
-			return try UserResponse(id: user.requireID(), username: user.username, roomID: user.roomID, spawnLocation: user.location, avatar: user.avatar)
+			return user.userResponse
+		}
+	}
+
+	func playerInfo(_ req: Request) throws -> Future<UserInfo> {
+		_ = try req.requireAuthenticated(User.self)
+
+		return try req.content.decode(UserInfoRequest.self).flatMap { userInfoReq in
+			return User.query(on: req).filter(\.playerID == userInfoReq.playerID)
+				.first().map { fetchedUser -> UserInfo in
+					guard let fetchedUser = fetchedUser else {
+						throw Abort(HTTPStatus.notFound)
+					}
+				return UserInfo(avatar: fetchedUser.avatar, username: fetchedUser.username, currentRoom: fetchedUser.roomID)
+			}
 		}
 	}
 
 	// MARK: - Other
-	/// currently this doesnt work
 	func resetPlayerRooms() throws {
 		guard let app = app else { throw VaporError.init(identifier: "com.bsv.noApp", reason: "App is nil in UserController") }
 		_ = app.newConnection(to: .sqlite).map { connection in
@@ -80,14 +93,25 @@ struct UserResponse: Content {
 	/// User's unique identifier.
 	/// Not optional since we only return users that exist in the DB.
 	var id: Int
+	let playerID: String
 	var username: String
 	let roomID: Int
 	let spawnLocation: CGPoint
 	let avatar: Int
 }
 
+struct UserInfo: Content {
+	let avatar: Int
+	let username: String
+	let currentRoom: Int
+}
+
+struct UserInfoRequest: Content {
+	let playerID: String
+}
+
 extension User {
 	var userResponse: UserResponse {
-		UserResponse(id: id ?? -1, username: username, roomID: roomID, spawnLocation: location, avatar: avatar)
+		UserResponse(id: id ?? -1, playerID: playerID, username: username, roomID: roomID, spawnLocation: location, avatar: avatar)
 	}
 }
