@@ -63,10 +63,8 @@ final public class UserController {
 	/// currently this doesnt work
 	func resetPlayerRooms() throws {
 		guard let app = app else { throw VaporError.init(identifier: "com.bsv.noApp", reason: "App is nil in UserController") }
-		let connection = try app.newConnection(to: .sqlite).map { connection in
-			let usersFuture = User.query(on: connection).all()
-
-			let more = usersFuture.map { users in
+		_ = app.newConnection(to: .sqlite).map { connection in
+			User.query(on: connection).all().map { users in
 				return users.map { user -> Future<User> in
 					user.roomID = -1
 					return user.save(on: connection)

@@ -21,7 +21,7 @@ final class User: SQLiteModel {
 		}
 	}
 
-	var roomID = 0
+	var roomID = -1
 	
 	/// Creates a new `User`.
 	init(id: Int? = nil, username: String, passwordHash: String) {
