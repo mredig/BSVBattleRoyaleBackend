@@ -30,7 +30,7 @@ public class WSConnectionController {
 extension WSConnectionController {
 	func setupRoutes(_ router: NIOWebSocketServer) throws {
 		// setup echoing
-		router.get("echo", String.parameter) { webSocket, request in
+		router.get("ws/rooms", String.parameter) { webSocket, request in
 			let id = try request.parameters.next(String.self)
 			let peerInfo = request.http.remotePeer.description
 
