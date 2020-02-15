@@ -28,17 +28,20 @@ public class WSConnectionController {
 }
 
 extension WSConnectionController {
-	func setupRoutes(_ router: NIOWebSocketServer) throws {
+	func setupRoutes(_ router: NIOWebSocketServer, roomController: RoomController) throws {
 		// setup echoing
 		router.get("ws/rooms", String.parameter) { webSocket, request in
-			let id = try request.parameters.next(String.self)
+			let playerID = try request.parameters.next(String.self)
 			let peerInfo = request.http.remotePeer.description
 
-			self.addConnection(connection: webSocket, id: id)
-			print("WEBSOCKET: connected \(id) (\(peerInfo))")
+			guard let player = roomController.allPlayers[playerID] else { return }
+			player.webSocket = webSocket
+
+			self.addConnection(connection: webSocket, id: playerID)
+			print("WEBSOCKET: connected \(playerID) (\(peerInfo))")
 
 			webSocket.onText { ws, text in
-				let textToSend = "\(id): \(text)"
+				let textToSend = "\(playerID): \(text)"
 				print(peerInfo, textToSend)
 
 				for (_, webSocketConnection) in self.connections {
@@ -47,12 +50,12 @@ extension WSConnectionController {
 			}
 
 			webSocket.onClose.always {
-				self.removeConnection(id: id)
-				print("WEBSOCKET: Disconnected \(id) (\(peerInfo))")
+				self.removeConnection(id: playerID)
+				print("WEBSOCKET: Disconnected \(playerID) (\(peerInfo))")
 			}
 
 			webSocket.onCloseCode { closeCode in
-				print("WEBSOCKET: Disconnected (\(id)) (\(peerInfo)) with code: \(closeCode)")
+				print("WEBSOCKET: Disconnected (\(playerID)) (\(peerInfo)) with code: \(closeCode)")
 			}
 
 			webSocket.onError { ws, error in

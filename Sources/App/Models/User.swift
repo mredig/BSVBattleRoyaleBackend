@@ -11,10 +11,10 @@ final class User: SQLiteModel {
 	var password: String
 	var avatar = 0
 	var playerID: String = UUID().uuidString
+	var roomID = -1
 
-	private var xLocation: Double
-	private var yLocation: Double
-
+	private var xLocation: Double = 0
+	private var yLocation: Double = 0
 	var location: CGPoint {
 		get { CGPoint(x: xLocation, y: yLocation) }
 		set {
@@ -26,8 +26,9 @@ final class User: SQLiteModel {
 		location
 	}()
 
-	var roomID = -1
-	
+	lazy var webSocket: WebSocket? = nil
+
+
 	/// Creates a new `User`.
 	init(id: Int? = nil, username: String, passwordHash: String) {
 		self.id = id
@@ -35,6 +36,19 @@ final class User: SQLiteModel {
 		self.username = username
 		self.xLocation = 0
 		self.yLocation = 0
+	}
+}
+
+extension User {
+	enum CodingKeys: String, CodingKey  {
+		case id
+		case username
+		case password
+		case avatar
+		case playerID
+		case xLocation
+		case yLocation
+		case roomID
 	}
 }
 

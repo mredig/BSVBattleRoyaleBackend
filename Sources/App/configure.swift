@@ -12,7 +12,7 @@ public func configure(_ config: inout Config, _ env: inout Environment, _ servic
 	let router = EngineRouter.default()
 	let wss = NIOWebSocketServer.default()
 	try routes(router, userController: userController, roomController: roomController)
-	try connectionController.setupRoutes(wss)
+	try connectionController.setupRoutes(wss, roomController: roomController)
 	services.register(router, as: Router.self)
 	services.register(wss, as: WebSocketServer.self)
 

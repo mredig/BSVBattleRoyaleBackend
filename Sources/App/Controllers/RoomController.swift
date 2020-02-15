@@ -7,6 +7,7 @@
 
 import Foundation
 import Vapor
+import Jobs
 
 public class RoomController {
 	var roomLimit: Int
@@ -31,11 +32,13 @@ public class RoomController {
 	var occupiedRooms = Set<Room>()
 	var emptyRooms = Set<Room>()
 	var roomCoordinates = Set<CGPoint>()
-	var allPlayers = [Int: User]()
+	var allPlayers = [String: User]()
 
 	var spawnRoom = Room(id: 0, position: .zero, name: "Spawn Room")
 
 	let userController: UserController
+
+	var gameLoopTimer: Job?
 
 	// MARK: - Lifecycle
 	init(roomLimit: Int, seed: UInt64 = UInt64(CFAbsoluteTimeGetCurrent() * 10000), userController: UserController) {
@@ -43,6 +46,15 @@ public class RoomController {
 
 		self.startingSeed = seed
 		self.userController = userController
+
+		gameLoopTimer = Jobs.add(interval: .seconds(0.33333), action: { [weak self] in
+			self?.gameLoop()
+		})
+	}
+
+	deinit {
+		gameLoopTimer?.stop()
+		gameLoopTimer = nil
 	}
 
 	func resetRooms() {
@@ -147,7 +159,7 @@ public class RoomController {
 		occupiedRooms.insert(newRoom)
 		emptyRooms.remove(newRoom)
 
-		try allPlayers[player.requireID()] = player
+		allPlayers[player.playerID] = player
 		newRoom.addPlayer(player)
 
 		let position: CGPoint
@@ -167,6 +179,35 @@ public class RoomController {
 		}
 		player.location = position
 		player.destination = position
+	}
+
+	// MARK: - Game logic
+	private func gameLoop() {
+		occupiedRooms.forEach {
+			let players = $0.players
+			let positionInfos: [String: PlayerPositionInfo] = players.reduce(into: [String: PlayerPositionInfo](), {
+				let info = PlayerPositionInfo(position: $1.location, destination: $1.destination)
+				$0[$1.playerID] = info
+			})
+			let message = WSMessage(messageType: .positionPulse, payload: positionInfos)
+
+			self.sendMessageToAllPlayersOfRoom(room: $0, message: message)
+		}
+	}
+
+	private func sendMessageToAllPlayersOfRoom<Payload>(room: Room, message: WSMessage<Payload>) {
+		let players = room.players
+		guard players.count > 0 else { return }
+		let playerInfoBlob: Data
+		do {
+			playerInfoBlob = try PropertyListEncoder().encode(message)
+		} catch {
+			NSLog("Failed encoding player positions for pulse: \(error)")
+			return
+		}
+		players.forEach {
+			$0.webSocket?.send(playerInfoBlob)
+		}
 	}
 }
 
@@ -246,4 +287,22 @@ struct InitRepresentation: Content {
 
 struct MoveRequest: Content {
 	let roomID: Int
+}
+
+struct PlayerPositionInfo: Content {
+	let position: CGPoint
+	let destination: CGPoint
+}
+
+
+struct WSMessage<Payload: Codable>: Content {
+	enum WSMessageType: String, Codable {
+		case positionUpdate
+		case positionPulse
+		case chatMessage
+		case playerAttack
+	}
+
+	let messageType: WSMessageType
+	let payload: Payload
 }

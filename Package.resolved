@@ -74,6 +74,15 @@
         }
       },
       {
+        "package": "Jobs",
+        "repositoryURL": "https://github.com/BrettRToomey/Jobs.git",
+        "state": {
+          "branch": null,
+          "revision": "2051cc49b64692534225ea9d347051f64ac682ee",
+          "version": "1.1.2"
+        }
+      },
+      {
         "package": "Multipart",
         "repositoryURL": "https://github.com/vapor/multipart.git",
         "state": {
@@ -168,8 +177,8 @@
         "repositoryURL": "https://github.com/vapor/url-encoded-form.git",
         "state": {
           "branch": null,
-          "revision": "82d8d63bdb76b6dd8febe916c639ab8608dbbaed",
-          "version": "1.0.6"
+          "revision": "44999b47d88ca2e0c0b893599b3240e342ba39ff",
+          "version": "1.0.7"
         }
       },
       {
