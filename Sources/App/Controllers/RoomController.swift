@@ -200,7 +200,7 @@ public class RoomController {
 		guard players.count > 0 else { return }
 		let playerInfoBlob: Data
 		do {
-			playerInfoBlob = try PropertyListEncoder().encode(message)
+			playerInfoBlob = try message.encode()
 		} catch {
 			NSLog("Failed encoding player positions for pulse: \(error)")
 			return
@@ -292,17 +292,4 @@ struct MoveRequest: Content {
 struct PlayerPositionInfo: Content {
 	let position: CGPoint
 	let destination: CGPoint
-}
-
-
-struct WSMessage<Payload: Codable>: Content {
-	enum WSMessageType: String, Codable {
-		case positionUpdate
-		case positionPulse
-		case chatMessage
-		case playerAttack
-	}
-
-	let messageType: WSMessageType
-	let payload: Payload
 }
