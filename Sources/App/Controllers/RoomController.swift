@@ -37,6 +37,7 @@ public class RoomController {
 
 	let userController: UserController
 
+	// MARK: - Lifecycle
 	init(roomLimit: Int, seed: UInt64 = UInt64(CFAbsoluteTimeGetCurrent() * 10000), userController: UserController) {
 		self.roomLimit = roomLimit
 
@@ -62,6 +63,7 @@ public class RoomController {
 		addRoomConnection(newRoom: spawnRoom, oldRoom: nil, direction: nil)
 	}
 
+	// MARK: - Room Generation
 	func generateRooms(seed: UInt64 = UInt64(CFAbsoluteTimeGetCurrent() * 10000)) {
 		resetRooms()
 
@@ -129,6 +131,7 @@ public class RoomController {
 		return occupiedLocations.count == neighborsAllowed
 	}
 
+	// MARK: - Player Management
 	func removePlayerFromCurrentRoom(_ player: User) {
 		guard let oldRoom = rooms[player.roomID] else { return }
 		oldRoom.removePlayer(player)
@@ -212,6 +215,7 @@ extension RoomController {
 	}
 }
 
+// MARK: - Helper Types
 struct RoomChangeInfo: Content {
 	let currentRoom: Int
 	let fromDirection: CardinalDirection
