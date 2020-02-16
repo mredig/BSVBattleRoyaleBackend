@@ -211,6 +211,7 @@ public class RoomController {
 	func playerChatted(message: ChatMessage?) {
 		guard let message = message, let player = allPlayers[message.playerID] else { return }
 		guard let room = rooms[player.roomID] else { return }
+		print("\(player.username) (\(room.name)): \(message.message)")
 		sendMessageToAllPlayersOfRoom(room: room, message: WSMessage(messageType: .chatMessage, payload: message))
 	}
 
