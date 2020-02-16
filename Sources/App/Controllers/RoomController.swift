@@ -80,6 +80,7 @@ public class RoomController {
 		resetRooms()
 
 		startingSeed = seed
+		print("Generating with seed: \(seed)")
 		myRNG = MyRNG(seed: seed)
 
 		let roomQueue = Queue<Room>()
@@ -200,7 +201,6 @@ public class RoomController {
 		guard let player = allPlayers[playerID] else { return }
 		player.location = pulseUpdate.position
 		player.destination = pulseUpdate.destination
-
 
 		_ = player.save(on: request).always { [weak self] in
 			guard let room = self?.rooms[player.roomID] else { return }
