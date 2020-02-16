@@ -208,6 +208,12 @@ public class RoomController {
 		}
 	}
 
+	func playerChatted(message: ChatMessage?) {
+		guard let message = message, let player = allPlayers[message.playerID] else { return }
+		guard let room = rooms[player.roomID] else { return }
+		sendMessageToAllPlayersOfRoom(room: room, message: WSMessage(messageType: .chatMessage, payload: message))
+	}
+
 	// MARK: - Game logic
 	private func gameLoop() {
 		occupiedRooms.forEach {
@@ -331,4 +337,9 @@ struct PositionPulseUpdate: Content {
 	func setting(playerID: String) -> PositionPulseUpdate {
 		PositionPulseUpdate(position: position, destination: destination, playerID: playerID)
 	}
+}
+
+struct ChatMessage: Content {
+	let message: String
+	let playerID: String
 }
