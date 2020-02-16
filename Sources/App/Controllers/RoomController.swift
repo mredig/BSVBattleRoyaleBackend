@@ -187,12 +187,25 @@ public class RoomController {
 		player.destination = position
 	}
 
-	func updatePlayerPosition(playerID: String, pulseUpdate: PositionPulseUpdate?, request: Request) {
+	func updatePlayerPulse(playerID: String, pulseUpdate: PositionPulseUpdate?, request: Request) {
 		guard let pulseUpdate = pulseUpdate else { return }
 		guard let player = allPlayers[playerID] else { return }
 		player.location = pulseUpdate.position
 		player.destination = pulseUpdate.destination
 		_ = player.save(on: request)
+	}
+
+	func updatePlayerPosition(playerID: String, pulseUpdate: PositionPulseUpdate?, request: Request) {
+		guard let pulseUpdate = pulseUpdate else { return }
+		guard let player = allPlayers[playerID] else { return }
+		player.location = pulseUpdate.position
+		player.destination = pulseUpdate.destination
+
+
+		_ = player.save(on: request).always { [weak self] in
+			guard let room = self?.rooms[player.roomID] else { return }
+			self?.sendMessageToAllPlayersOfRoom(room: room, message: WSMessage(messageType: .positionUpdate, payload: pulseUpdate.setting(playerID: playerID)))
+		}
 	}
 
 	// MARK: - Game logic
@@ -306,4 +319,16 @@ struct MoveRequest: Content {
 struct PositionPulseUpdate: Content {
 	let position: CGPoint
 	let destination: CGPoint
+	let playerID: String?
+
+	init(position: CGPoint, destination: CGPoint, playerID: String? = nil) {
+		self.position = position
+		self.destination = destination
+		self.playerID = playerID
+	}
+
+	/// returns a new PositionPulseUpdate, but with the playerID value populated with the passed in value
+	func setting(playerID: String) -> PositionPulseUpdate {
+		PositionPulseUpdate(position: position, destination: destination, playerID: playerID)
+	}
 }

@@ -69,13 +69,13 @@ extension WSConnectionController {
 				if let magic = data.getMagic() {
 					switch magic {
 					case .positionPulse:
-						roomController.updatePlayerPosition(playerID: playerID, pulseUpdate: self?.decodeSafely(type: PositionPulseUpdate.self, from: data), request: request)
+						roomController.updatePlayerPulse(playerID: playerID, pulseUpdate: self?.decodeSafely(type: PositionPulseUpdate.self, from: data), request: request)
 					case .chatMessage:
 						break
 					case .playerAttack:
 						break
 					case .positionUpdate:
-						break
+						roomController.updatePlayerPosition(playerID: playerID, pulseUpdate: self?.decodeSafely(type: PositionPulseUpdate.self, from: data), request: request)
 					}
 				} else {
 					print("got data: \(data)")
