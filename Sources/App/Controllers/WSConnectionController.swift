@@ -41,12 +41,12 @@ extension WSConnectionController {
 			print("WEBSOCKET: connected \(playerID) (\(peerInfo))")
 
 			webSocket.onText { ws, text in
-				let textToSend = "\(playerID): \(text)"
-				print(peerInfo, textToSend)
-
-				for (_, webSocketConnection) in self.connections {
-					webSocketConnection.send(textToSend)
-				}
+//				let textToSend = "\(playerID): \(text)"
+//				print(peerInfo, textToSend)
+//
+//				for (_, webSocketConnection) in self.connections {
+//					webSocketConnection.send(textToSend)
+//				}
 			}
 
 			webSocket.onClose.always {
@@ -62,9 +62,32 @@ extension WSConnectionController {
 				print("WEBSOCKET: Error (\(peerInfo)):", ws, error)
 			}
 
-			webSocket.onBinary { ws, data in
+			webSocket.onBinary { [weak self] ws, data in
 				print("WEBSOCKET: Binary (\(peerInfo)): ", ws, data)
+				if let magic = data.getMagic() {
+					switch magic {
+					case .positionPulse:
+						roomController.updatePlayerPosition(playerID: playerID, pulseUpdate: self?.decodeSafely(type: PositionPulseUpdate.self, from: data), request: request)
+					case .chatMessage:
+						break
+					case .playerAttack:
+						break
+					case .positionUpdate:
+						break
+					}
+				} else {
+					print("got data: \(data)")
+				}
 			}
 		}
+	}
+
+	private func decodeSafely<T: Codable>(type: T.Type, from data: Data) -> T? {
+		do {
+			return try data.extractPayload(payloadType: T.self)
+		} catch {
+			NSLog("Error extracting payload (\(type)) from data: \(error)")
+		}
+		return nil
 	}
 }

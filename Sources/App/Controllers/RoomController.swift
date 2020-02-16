@@ -181,12 +181,20 @@ public class RoomController {
 		player.destination = position
 	}
 
+	func updatePlayerPosition(playerID: String, pulseUpdate: PositionPulseUpdate?, request: Request) {
+		guard let pulseUpdate = pulseUpdate else { return }
+		guard let player = allPlayers[playerID] else { return }
+		player.location = pulseUpdate.position
+		player.destination = pulseUpdate.destination
+		_ = player.save(on: request)
+	}
+
 	// MARK: - Game logic
 	private func gameLoop() {
 		occupiedRooms.forEach {
 			let players = $0.players
-			let positionInfos: [String: PlayerPositionInfo] = players.reduce(into: [String: PlayerPositionInfo](), {
-				let info = PlayerPositionInfo(position: $1.location, destination: $1.destination)
+			let positionInfos: [String: PositionPulseUpdate] = players.reduce(into: [String: PositionPulseUpdate](), {
+				let info = PositionPulseUpdate(position: $1.location, destination: $1.destination)
 				$0[$1.playerID] = info
 			})
 			let message = WSMessage(messageType: .positionPulse, payload: positionInfos)
@@ -289,7 +297,7 @@ struct MoveRequest: Content {
 	let roomID: Int
 }
 
-struct PlayerPositionInfo: Content {
+struct PositionPulseUpdate: Content {
 	let position: CGPoint
 	let destination: CGPoint
 }
