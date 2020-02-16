@@ -41,12 +41,7 @@ extension WSConnectionController {
 			print("WEBSOCKET: connected \(playerID) (\(peerInfo))")
 
 			webSocket.onText { ws, text in
-//				let textToSend = "\(playerID): \(text)"
-//				print(peerInfo, textToSend)
-//
-//				for (_, webSocketConnection) in self.connections {
-//					webSocketConnection.send(textToSend)
-//				}
+				print("WEBSOCKET: text \(peerInfo) (\(text))")
 			}
 
 			webSocket.onClose.always {
