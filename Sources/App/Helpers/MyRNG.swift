@@ -31,6 +31,12 @@ class MyRNG {
 		guard maxValue > 0 else { return nil }
 		return array[Int(randomNumber(max: maxValue))]
 	}
+
+	func randomChoice<Key: Hashable & Comparable, Element>(from dictionary: [Key: Element]) -> (key: Key, value: Element)? {
+		let keys = dictionary.keys.sorted()
+		guard let key = randomChoice(from: keys), let value = dictionary[key] else { return nil }
+		return (key, value)
+	}
 }
 
 

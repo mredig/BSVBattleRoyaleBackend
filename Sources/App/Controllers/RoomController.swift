@@ -31,7 +31,7 @@ public class RoomController {
 	}
 	var occupiedRooms = Set<Room>()
 	var emptyRooms = Set<Room>()
-	var roomCoordinates = Set<CGPoint>()
+	var roomCoordinates = [CGPoint: Room]()
 	var allPlayers = [String: User]()
 
 	var spawnRoom = Room(id: 0, position: .zero, name: "Spawn Room")
@@ -86,7 +86,9 @@ public class RoomController {
 		let roomQueue = Queue<Room>()
 		roomQueue.enqueue(spawnRoom)
 
-		while rooms.count < roomLimit {
+		// part 1
+		let part1Rooms = Int(Double(roomLimit) * 0.85)
+		while rooms.count < part1Rooms {
 			guard let oldRoom = roomQueue.dequeue() else {
 				print("somehow there are no valid rooms in the queue!")
 				return
@@ -103,6 +105,25 @@ public class RoomController {
 				roomQueue.enqueue(oldRoom)
 			}
 		}
+
+		// part 2
+		while rooms.count < roomLimit {
+			guard let (roomID, oldRoom) = myRNG.randomChoice(from: rooms) else {
+				print("somehow there are no rooms!")
+				return
+			}
+
+			let possibleDirections = eligibleDirections(from: oldRoom, neighborsAllowed: 2)
+			guard let newDirection = myRNG.randomChoice(from: possibleDirections) else { continue }
+			let newRoom = Room(id: rooms.count, name: "Room \(rooms.count)")
+			addRoomConnection(newRoom: newRoom, oldRoom: oldRoom, direction: newDirection)
+			if myRNG.randomInt(max: 100) < 75 {
+				// connect the second door
+				guard let otherRoom = neighboringRooms(to: newRoom).first(where: { $0 != oldRoom }) else { continue }
+				guard let otherDirection = direction(to: otherRoom, from: newRoom) else { continue }
+				newRoom.connect(to: otherRoom, through: otherDirection)
+			}
+		}
 	}
 
 	private func addRoomConnection(newRoom: Room, oldRoom: Room?, direction: CardinalDirection?) {
@@ -113,7 +134,7 @@ public class RoomController {
 		guard rooms[newRoom.id] == nil else { fatalError("There is somehow a duplicate room! ROOM FOR YOUR LIFE") }
 		rooms[newRoom.id] = newRoom
 		emptyRooms.insert(newRoom)
-		roomCoordinates.insert(newRoom.position)
+		roomCoordinates[newRoom.position] = newRoom
 	}
 
 	private func eligibleDirections(from room: Room, neighborsAllowed: Int = 1) -> [CardinalDirection] {
@@ -137,11 +158,36 @@ public class RoomController {
 	}
 
 	private func canAddRoom(at position: CGPoint, neighborsAllowed: Int) -> Bool {
-		guard !roomCoordinates.contains(position) else { return false }
+		guard roomCoordinates[position] == nil else { return false }
 
 		let (n,s,w,e) = position.oneInAllDirections
-		let occupiedLocations = [n,s,w,e].filter { roomCoordinates.contains($0) }
+		let occupiedLocations = [n,s,w,e].filter { roomCoordinates[$0] != nil }
 		return occupiedLocations.count == neighborsAllowed
+	}
+
+	private func neighboringRooms(to room: Room) -> [Room] {
+		let pos = room.position
+		let (n,s,w,e) = pos.oneInAllDirections
+		return [n,s,w,e].compactMap { roomCoordinates[$0] }
+	}
+
+	private func direction(to destination: Room, from source: Room) -> CardinalDirection? {
+		guard destination.position.distance(to: source.position, isWithin: 1.01) else { return nil }
+
+		if destination.position.y == source.position.y {
+			if destination.position.x < source.position.x {
+				return .west
+			} else {
+				return .east
+			}
+		} else if destination.position.x == source.position.x {
+			if destination.position.y < source.position.y {
+				return .south
+			} else {
+				return .north
+			}
+		}
+		return nil
 	}
 
 	// MARK: - Player Management
@@ -248,7 +294,7 @@ public class RoomController {
 // MARK: - Route response
 extension RoomController {
 	func getOverworld(_ req: Request) throws -> Future<RoomCollection> {
-		return req.future(RoomCollection(rooms: rooms.mapValues { $0.representation }, roomCoordinates: roomCoordinates, spawnRoom: spawnRoom.id, seed: startingSeed))
+		return req.future(RoomCollection(rooms: rooms.mapValues { $0.representation }, roomCoordinates: Set(roomCoordinates.keys), spawnRoom: spawnRoom.id, seed: startingSeed))
 	}
 
 	func initializePlayer(_ req: Request) throws -> Future<UserResponse> {
