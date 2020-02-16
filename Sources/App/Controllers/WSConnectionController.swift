@@ -73,7 +73,7 @@ extension WSConnectionController {
 					case .chatMessage:
 						roomController.playerChatted(message: self?.decodeSafely(type: ChatMessage.self, from: data))
 					case .playerAttack:
-						break
+						roomController.playerAttacked(with: self?.decodeSafely(type: PlayerAttack.self, from: data))
 					case .positionUpdate:
 						roomController.updatePlayerPosition(playerID: playerID, pulseUpdate: self?.decodeSafely(type: PositionPulseUpdate.self, from: data), request: request)
 					}
