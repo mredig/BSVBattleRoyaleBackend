@@ -52,10 +52,12 @@ extension WSConnectionController {
 			webSocket.onClose.always {
 				self.removeConnection(id: playerID)
 				print("WEBSOCKET: Disconnected \(playerID) (\(peerInfo))")
+				roomController.playerDisconnected(id: playerID)
 			}
 
 			webSocket.onCloseCode { closeCode in
 				print("WEBSOCKET: Disconnected (\(playerID)) (\(peerInfo)) with code: \(closeCode)")
+				roomController.playerDisconnected(id: playerID)
 			}
 
 			webSocket.onError { ws, error in
@@ -63,7 +65,7 @@ extension WSConnectionController {
 			}
 
 			webSocket.onBinary { [weak self] ws, data in
-				print("WEBSOCKET: Binary (\(peerInfo)): ", ws, data)
+//				print("WEBSOCKET: Binary (\(peerInfo)): ", ws, data)
 				if let magic = data.getMagic() {
 					switch magic {
 					case .positionPulse:

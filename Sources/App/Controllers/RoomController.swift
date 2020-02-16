@@ -144,6 +144,12 @@ public class RoomController {
 	}
 
 	// MARK: - Player Management
+	func playerDisconnected(id playerID: String) {
+		guard let player = allPlayers[playerID] else { return }
+		removePlayerFromCurrentRoom(player)
+		allPlayers[playerID] = nil
+	}
+
 	func removePlayerFromCurrentRoom(_ player: User) {
 		guard let oldRoom = rooms[player.roomID] else { return }
 		oldRoom.removePlayer(player)
