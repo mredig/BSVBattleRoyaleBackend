@@ -23,15 +23,15 @@ final class PopulateUsers: Migration {
 	}
 
 	static func revert(on conn: SQLiteConnection) -> EventLoopFuture<Void> {
-		//		do {
+//		do {
 		let futures = users.map { name in
 			return User.query(on: conn)
 				.filter(\User.username == name)
 				.delete()
 		}
 		return Future<Void>.andAll(futures, eventLoop: conn.eventLoop)
-		//		} catch {
-		//			return conn.eventLoop.newFailedFuture(error: error)
-		//		}
+//		} catch {
+//			return conn.eventLoop.newFailedFuture(error: error)
+//		}
 	}
 }
