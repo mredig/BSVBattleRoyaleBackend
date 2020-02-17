@@ -37,6 +37,11 @@ final class User: SQLiteModel {
 		self.xLocation = 0
 		self.yLocation = 0
 	}
+
+	convenience init?(id: Int? = nil, username: String, password: String) {
+		guard let pwhash = try? BCrypt.hash(password) else { return nil }
+		self.init(id: id, username: username, passwordHash: pwhash)
+	}
 }
 
 extension User {

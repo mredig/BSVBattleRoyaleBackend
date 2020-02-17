@@ -31,6 +31,7 @@ public func configure(_ config: inout Config,
 
 	// Configure a SQLite database
 	let sqlite = try SQLiteDatabase(storage: .memory)
+//	let sqlite = try SQLiteDatabase(storage: .file(path: "temp.db"))
 
 	// Register the configured SQLite database to the database config.
 	var databases = DatabasesConfig()
@@ -42,6 +43,10 @@ public func configure(_ config: inout Config,
 	var migrations = MigrationConfig()
 	migrations.add(model: User.self, database: .sqlite)
 	migrations.add(model: UserToken.self, database: .sqlite)
+
+	// prepopulate user db
+	migrations.add(migration: PopulateUsers.self, database: .sqlite)
+
 	services.register(migrations)
 
 }
