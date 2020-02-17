@@ -43,18 +43,18 @@ struct MoveRequest: Content {
 
 struct PositionPulseUpdate: Content {
 	let position: CGPoint
-	let destination: CGPoint
+	let trajectory: CGVector
 	let playerID: String?
 
-	init(position: CGPoint, destination: CGPoint, playerID: String? = nil) {
+	init(position: CGPoint, trajectory: CGVector, playerID: String? = nil) {
 		self.position = position
-		self.destination = destination
+		self.trajectory = trajectory
 		self.playerID = playerID
 	}
 
 	/// returns a new PositionPulseUpdate, but with the playerID value populated with the passed in value
 	func setting(playerID: String) -> PositionPulseUpdate {
-		PositionPulseUpdate(position: position, destination: destination, playerID: playerID)
+		PositionPulseUpdate(position: position, trajectory: trajectory, playerID: playerID)
 	}
 }
 

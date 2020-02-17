@@ -231,14 +231,14 @@ public class RoomController {
 			position = CGPoint(x: roomMid, y: roomMid)
 		}
 		player.location = position
-		player.destination = position
+		player.trajectory = .zero
 	}
 
 	func updatePlayerPulse(playerID: String, pulseUpdate: PositionPulseUpdate?, request: Request) {
 		guard let pulseUpdate = pulseUpdate else { return }
 		guard let player = allPlayers[playerID] else { return }
 		player.location = pulseUpdate.position
-		player.destination = pulseUpdate.destination
+		player.trajectory = pulseUpdate.trajectory
 		_ = player.save(on: request)
 	}
 
@@ -246,7 +246,7 @@ public class RoomController {
 		guard let pulseUpdate = pulseUpdate else { return }
 		guard let player = allPlayers[playerID] else { return }
 		player.location = pulseUpdate.position
-		player.destination = pulseUpdate.destination
+		player.trajectory = pulseUpdate.trajectory
 
 		_ = player.save(on: request).always { [weak self] in
 			guard let room = self?.rooms[player.roomID] else { return }
@@ -272,7 +272,7 @@ public class RoomController {
 		occupiedRooms.forEach {
 			let players = $0.players
 			let positionInfos: [String: PositionPulseUpdate] = players.reduce(into: [String: PositionPulseUpdate](), {
-				let info = PositionPulseUpdate(position: $1.location, destination: $1.destination)
+				let info = PositionPulseUpdate(position: $1.location, trajectory: $1.trajectory)
 				$0[$1.playerID] = info
 			})
 			let message = WSMessage(messageType: .positionPulse, payload: positionInfos)

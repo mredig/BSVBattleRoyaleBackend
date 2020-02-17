@@ -22,8 +22,8 @@ final class User: SQLiteModel {
 			yLocation = Double(newValue.y)
 		}
 	}
-	lazy var destination: CGPoint = {
-		location
+	lazy var trajectory: CGVector = {
+		.zero
 	}()
 
 	lazy var webSocket: WebSocket? = nil
