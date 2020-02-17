@@ -108,7 +108,7 @@ public class RoomController {
 
 		// part 2
 		while rooms.count < roomLimit {
-			guard let (roomID, oldRoom) = myRNG.randomChoice(from: rooms) else {
+			guard let (_, oldRoom) = myRNG.randomChoice(from: rooms) else {
 				print("somehow there are no rooms!")
 				return
 			}
@@ -206,7 +206,7 @@ public class RoomController {
 		}
 	}
 
-	func spawn(player: User, in room: Room?, from direction: CardinalDirection?) throws {
+	func spawn(player: User, in room: Room?, from direction: CardinalDirection?) {
 		removePlayerFromCurrentRoom(player)
 		let newRoom = room ?? spawnRoom
 		occupiedRooms.insert(newRoom)
@@ -311,7 +311,7 @@ extension RoomController {
 
 			user.location = CGPoint(x: mid, y: mid)
 			user.avatar = initRep.playerAvatar
-			try self.spawn(player: user, in: self.rooms[user.roomID], from: nil)
+			self.spawn(player: user, in: self.rooms[user.roomID], from: nil)
 			return user.update(on: req).map { $0.userResponse }
 		}
 	}
@@ -324,14 +324,13 @@ extension RoomController {
 			let newRoomID = moveRequest.roomID
 			let currentRoom = self.rooms[currentRoomID] ?? self.spawnRoom
 			guard let newRoom = self.rooms[newRoomID] else {
-				// FIXME: there's probably a better error to put here
-				throw HTTPError(identifier: "Invalid Room", reason: "Invalid Room")
+				throw HTTPError(identifier: "Invalid Room", reason: "Room doesn't exist")
 			}
 
 			guard let fromDirection = newRoom.direction(of: currentRoom) else {
 				throw HTTPError(identifier: "Direction not valid", reason: "perhaps room is not connected")
 			}
-			try self.spawn(player: user, in: newRoom, from: fromDirection)
+			self.spawn(player: user, in: newRoom, from: fromDirection)
 			return user.save(on: req).map { user -> RoomChangeInfo in
 				return RoomChangeInfo(currentRoom: newRoom.id,
 									  fromDirection: fromDirection,
