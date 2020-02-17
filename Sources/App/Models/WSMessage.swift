@@ -12,6 +12,7 @@ enum WSMessageType: String, Codable {
 	case positionPulse
 	case chatMessage
 	case playerAttack
+	case latencyPing
 }
 
 enum WSMessageError: Error {

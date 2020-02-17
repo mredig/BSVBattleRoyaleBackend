@@ -71,6 +71,8 @@ extension WSConnectionController {
 						roomController.playerAttacked(with: self?.decodeSafely(type: PlayerAttack.self, from: data))
 					case .positionUpdate:
 						roomController.updatePlayerPosition(playerID: playerID, pulseUpdate: self?.decodeSafely(type: PositionPulseUpdate.self, from: data), request: request)
+					case .latencyPing:
+						ws.send(data)
 					}
 				} else {
 					print("got data: \(data)")
