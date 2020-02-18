@@ -318,9 +318,10 @@ extension RoomController {
 
 	func moveToRoom(_ req: Request) throws -> Future<RoomChangeInfo> {
 		let user = try req.requireAuthenticated(User.self)
+		let player = allPlayers[user.playerID] ?? user
 
 		return try req.content.decode(MoveRequest.self).flatMap { moveRequest -> Future<RoomChangeInfo> in
-			let currentRoomID = user.roomID
+			let currentRoomID = player.roomID
 			let newRoomID = moveRequest.roomID
 			let currentRoom = self.rooms[currentRoomID] ?? self.spawnRoom
 			guard let newRoom = self.rooms[newRoomID] else {
@@ -330,8 +331,8 @@ extension RoomController {
 			guard let fromDirection = newRoom.direction(of: currentRoom) else {
 				throw HTTPError(identifier: "Direction not valid", reason: "perhaps room is not connected")
 			}
-			self.spawn(player: user, in: newRoom, from: fromDirection)
-			return user.save(on: req).map { user -> RoomChangeInfo in
+			self.spawn(player: player, in: newRoom, from: fromDirection)
+			return player.save(on: req).map { user -> RoomChangeInfo in
 				return RoomChangeInfo(currentRoom: newRoom.id,
 									  fromDirection: fromDirection,
 									  spawnLocation: user.location,
