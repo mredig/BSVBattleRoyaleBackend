@@ -65,5 +65,11 @@ struct ChatMessage: Content {
 
 struct PlayerAttack: Content {
 	let attacker: String
-	let hitPlayers: [String]
+	let attackContacts: [AttackContact]
+}
+
+struct AttackContact: Content {
+	let victim: String
+	let vector: CGVector
+	let strength: CGFloat
 }
