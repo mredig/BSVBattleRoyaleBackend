@@ -327,7 +327,7 @@ extension RoomController {
 			guard let newRoom = self.rooms[newRoomID] else {
 				throw HTTPError(identifier: "Invalid Room", reason: "Room doesn't exist")
 			}
-
+			print("\(player.username) moved from: \(currentRoom) newRoom: \(newRoom)")
 			guard let fromDirection = newRoom.direction(of: currentRoom) else {
 				throw HTTPError(identifier: "Direction not valid", reason: "perhaps room is not connected")
 			}
