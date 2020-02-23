@@ -9,7 +9,12 @@ import Foundation
 import Vapor
 
 public class WSConnectionController {
-	private var connections = [String: WebSocket]()
+	private let connectionsQueue = DispatchQueue(label: "ConnectionsQueue")
+	private var _connections = [String: WebSocket]()
+	private var connections: [String: WebSocket] {
+		get { connectionsQueue.sync { _connections } }
+		set { connectionsQueue.sync { self._connections = newValue } }
+	}
 
 	public func addConnection(connection: WebSocket, id: String) {
 		connections[id]?.close(code: .policyViolation)
