@@ -264,6 +264,12 @@ public class RoomController {
 	func playerAttacked(with attackInfo: PlayerAttack?) {
 		guard let attackInfo = attackInfo else { return }
 		guard let player = allPlayers[attackInfo.attacker], let room = rooms[player.roomID] else { return }
+		print(attackInfo)
+		attackInfo.attackContacts.forEach {
+			guard let victim = allPlayers[$0.victim] else { return }
+			victim.updateCurrentHP(with: .adjust(by: Int(-10 * $0.strength)))
+			print("\(victim.username) current HP: \(victim.currentHP)")
+		}
 		sendMessageToAllPlayersOfRoom(room: room, message: WSMessage(messageType: .playerAttack, payload: attackInfo))
 	}
 
@@ -308,7 +314,7 @@ extension RoomController {
 
 		let mid = roomMid
 		return try req.content.decode(InitRepresentation.self).flatMap { initRep -> Future<UserResponse> in
-
+			user.restoreInWorld()
 			user.location = CGPoint(x: mid, y: mid)
 			user.avatar = initRep.playerAvatar
 			self.spawn(player: user, in: self.rooms[user.roomID], from: nil)

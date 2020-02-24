@@ -4,14 +4,29 @@ import Vapor
 
 /// A registered user, capable of owning todo items.
 final class User: SQLiteModel {
+	// MARK: - DB / Account properties
+	static let createdAtKey: TimestampKey? = \.createdAt
+	static let updatedAtKey: TimestampKey? = \.updatedAt
+
 	/// User's unique identifier.
 	/// Can be `nil` if the user has not been saved yet.
 	var id: Int?
 	var username: String
 	var password: String
+
+	var createdAt: Date?
+	var updatedAt: Date?
+
+	// MARK: - Character Meta Properties
+	lazy var webSocket: WebSocket? = nil
 	var avatar = 0
 	var playerID: String = UUID().uuidString
 	var roomID = -1
+
+	// MARK: - Character Live Properties
+	static let startingHP = 100
+	private(set) var currentHP = User.startingHP
+	var maxHP = User.startingHP
 
 	private var xLocation: Double = 0
 	private var yLocation: Double = 0
@@ -26,9 +41,9 @@ final class User: SQLiteModel {
 		.zero
 	}()
 
-	lazy var webSocket: WebSocket? = nil
 
 
+	// MARK: - Lifecycle
 	/// Creates a new `User`.
 	init(id: Int? = nil, username: String, passwordHash: String) {
 		self.id = id
@@ -42,6 +57,29 @@ final class User: SQLiteModel {
 		guard let pwhash = try? BCrypt.hash(password) else { return nil }
 		self.init(id: id, username: username, passwordHash: pwhash)
 	}
+
+	func updateCurrentHP(with change: HPChange) {
+		let adjustedHP: Int
+		switch change {
+		case .adjust(by: let adjustment):
+			adjustedHP = currentHP + adjustment
+		case .set(to: let result):
+			adjustedHP = result
+		}
+
+		currentHP = min(maxHP, max(0, adjustedHP))
+	}
+
+	func restoreInWorld() {
+		// restore health based on how long the logout was
+		guard let updatedAt = updatedAt else { return }
+		let timeSinceLastUpdate = -updatedAt.timeIntervalSinceNow
+		let minutesSince = timeSinceLastUpdate / 60
+		let tenPercentMax = Double(maxHP) / 10
+
+		let restoredHeath = Int(minutesSince * tenPercentMax)
+		updateCurrentHP(with: .adjust(by: restoredHeath))
+	}
 }
 
 extension User {
@@ -54,6 +92,10 @@ extension User {
 		case xLocation
 		case yLocation
 		case roomID
+		case createdAt
+		case updatedAt
+		case currentHP
+		case maxHP
 	}
 }
 
@@ -100,6 +142,10 @@ extension User: Migration {
 			builder.field(for: \.xLocation)
 			builder.field(for: \.yLocation)
 			builder.field(for: \.avatar)
+			builder.field(for: \.updatedAt)
+			builder.field(for: \.createdAt)
+			builder.field(for: \.currentHP)
+			builder.field(for: \.maxHP)
 			builder.field(for: \.playerID)
 			builder.unique(on: \.playerID)
 			builder.unique(on: \.username)
@@ -112,3 +158,9 @@ extension User: Content { }
 
 /// Allows `User` to be used as a dynamic parameter in route definitions.
 extension User: Parameter { }
+
+
+enum HPChange {
+	case set(to: Int)
+	case adjust(by: Int)
+}

@@ -98,6 +98,9 @@ struct UserResponse: Content {
 	let roomID: Int
 	let spawnLocation: CGPoint
 	let avatar: Int
+
+	let createdTimestamp: Date?
+	let updatedTimestamp: Date?
 }
 
 struct UserInfo: Content {
@@ -112,6 +115,6 @@ struct UserInfoRequest: Content {
 
 extension User {
 	var userResponse: UserResponse {
-		UserResponse(id: id ?? -1, playerID: playerID, username: username, roomID: roomID, spawnLocation: location, avatar: avatar)
+		UserResponse(id: id ?? -1, playerID: playerID, username: username, roomID: roomID, spawnLocation: location, avatar: avatar, createdTimestamp: createdAt, updatedTimestamp: updatedAt)
 	}
 }
