@@ -353,13 +353,13 @@ extension CGVector: Equatable, CustomDebugStringConvertible {
 }
 
 extension CGVector: Codable {
-	init(from decoder: Decoder) throws {
+	public init(from decoder: Decoder) throws {
 		var container = try decoder.unkeyedContainer()
 		self.dx = try container.decode(CGFloat.self)
 		self.dy = try container.decode(CGFloat.self)
 	}
 
-	func encode(to encoder: Encoder) throws {
+	public func encode(to encoder: Encoder) throws {
 		var container = encoder.unkeyedContainer()
 		try container.encode(dx)
 		try container.encode(dy)
