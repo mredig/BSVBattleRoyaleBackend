@@ -33,8 +33,9 @@ struct RoomCollection: Content {
 	let seed: UInt64
 }
 
-struct InitRepresentation: Content {
+struct PlayerInitRepresentation: Content {
 	let playerAvatar: Int
+	let respawn: Bool
 }
 
 struct MoveRequest: Content {

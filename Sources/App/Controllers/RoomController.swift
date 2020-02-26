@@ -212,6 +212,10 @@ public class RoomController {
 		occupiedRooms.insert(newRoom)
 		emptyRooms.remove(newRoom)
 
+		// fallback in case i can't somehow maintain the same player instance in the future
+//		if let webSocket = allPlayers[player.playerID]?.webSocket, player.webSocket == nil {
+//			player.webSocket = webSocket
+//		}
 		allPlayers[player.playerID] = player
 		newRoom.addPlayer(player)
 
@@ -227,10 +231,8 @@ public class RoomController {
 			case .west:
 				position = CGPoint(x: 0, y: roomMid)
 			}
-		} else {
-			position = CGPoint(x: roomMid, y: roomMid)
+			player.location = position
 		}
-		player.location = position
 		player.trajectory = .zero
 	}
 
@@ -315,12 +317,18 @@ extension RoomController {
 		let user = try req.requireAuthenticated(User.self)
 
 		let mid = roomMid
-		return try req.content.decode(InitRepresentation.self).flatMap { initRep -> Future<UserResponse> in
-			user.restoreInWorld()
-			user.location = CGPoint(x: mid, y: mid)
-			user.avatar = initRep.playerAvatar
-			self.spawn(player: user, in: self.rooms[user.roomID], from: nil)
-			return user.update(on: req).map { $0.userResponse }
+		return try req.content.decode(PlayerInitRepresentation.self).flatMap { initRep -> Future<UserResponse> in
+			let player = self.allPlayers[user.playerID] ?? user
+			if initRep.respawn || player.roomID == -1 {
+				player.location = CGPoint(x: mid, y: mid)
+				player.updateCurrentHP(with: .set(to: player.maxHP))
+				self.spawn(player: player, in: self.spawnRoom, from: nil)
+			} else {
+				self.spawn(player: player, in: self.rooms[player.roomID], from: nil)
+				player.restoreInWorld()
+			}
+			player.avatar = initRep.playerAvatar
+			return player.update(on: req).map { $0.userResponse }
 		}
 	}
 
