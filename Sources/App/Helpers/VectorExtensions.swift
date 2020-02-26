@@ -346,9 +346,23 @@ extension CGVector {
 	}
 }
 
-extension CGVector: Equatable, CustomDebugStringConvertible, Codable {
+extension CGVector: Equatable, CustomDebugStringConvertible {
 	public var debugDescription: String {
 		"(dx: \(dx), dy: \(dy))"
+	}
+}
+
+extension CGVector: Codable {
+	init(from decoder: Decoder) throws {
+		var container = try decoder.unkeyedContainer()
+		self.dx = try container.decode(CGFloat.self)
+		self.dy = try container.decode(CGFloat.self)
+	}
+
+	func encode(to encoder: Encoder) throws {
+		var container = encoder.unkeyedContainer()
+		try container.encode(dx)
+		try container.encode(dy)
 	}
 }
 
