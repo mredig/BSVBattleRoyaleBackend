@@ -41,7 +41,7 @@ struct MoveRequest: Content {
 	let roomID: Int
 }
 
-struct PositionPulseUpdate: Content {
+struct PositionUpdate: Content, Hashable {
 	let position: CGPoint
 	let trajectory: CGVector
 	let playerID: String?
@@ -53,9 +53,20 @@ struct PositionPulseUpdate: Content {
 	}
 
 	/// returns a new PositionPulseUpdate, but with the playerID value populated with the passed in value
-	func setting(playerID: String) -> PositionPulseUpdate {
-		PositionPulseUpdate(position: position, trajectory: trajectory, playerID: playerID)
+	func setting(playerID: String) -> PositionUpdate {
+		PositionUpdate(position: position, trajectory: trajectory, playerID: playerID)
 	}
+}
+
+struct PlayerHealthUpdate: Content, Hashable {
+	let currentHP: Int
+	let maxHP: Int
+}
+
+struct PulseUpdate: Content, Hashable {
+	let playerID: String
+	let positionUpdate: PositionUpdate
+	let health: PlayerHealthUpdate
 }
 
 struct ChatMessage: Content {

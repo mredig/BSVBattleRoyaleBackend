@@ -11,7 +11,7 @@ import FluentSQLite
 final class PopulateUsers: Migration {
 	typealias Database = SQLiteDatabase
 
-	static let users = ["appreviewer", "ffff", "qqqq", "mredig"]
+	static let users = ["appreviewer", "ffff", "aaaa", "mredig"]
 
 	static func prepare(on conn: SQLiteConnection) -> EventLoopFuture<Void> {
 		let futures = users.compactMap { name in
