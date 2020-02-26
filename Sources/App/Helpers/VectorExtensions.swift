@@ -6,6 +6,11 @@
 //  Copyright © 2019 swaap. All rights reserved.
 //
 
+// CoreGraphics isn't available on Linux, but there's partial support for CGPoint and some of its siblings.
+// To get around this, I've created a typealias for CGPoint as CGVector (since CGVector doesn't exist on Linux), but
+// that then results in some duplication of things that both CGVector and CGPoint have in these extensions, so I'm
+// selectively compiling things on Linux
+
 import Foundation
 #if os(macOS) || os(watchOS) || os(iOS) || os(tvOS)
 import CoreGraphics
@@ -74,17 +79,19 @@ extension CGPoint {
 		CGPoint(x: lhs.x + rhs.dx, y: lhs.y + rhs.dy)
 	}
 
-	static func + (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
-		lhs + rhs.vector
-	}
-
 	static func - (lhs: CGPoint, rhs: CGVector) -> CGPoint {
 		lhs + rhs.inverted
+	}
+
+	#if !os(Linux)
+	static func + (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
+		lhs + rhs.vector
 	}
 
 	static func - (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
 		lhs + rhs.vector.inverted
 	}
+	#endif
 
 	/// multiply two points together
 	static func * (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
@@ -285,6 +292,7 @@ extension CGVector {
 		self.init(fromRadian: degree * (CGFloat.pi / 180))
 	}
 
+	#if !os(Linux)
 	init<IntNumber: BinaryInteger>(scalar: IntNumber) {
 		let value = CGFloat(scalar)
 		self.init(dx: value, dy: value)
@@ -294,6 +302,7 @@ extension CGVector {
 		let value = CGFloat(scalar)
 		self.init(dx: value, dy: value)
 	}
+	#endif
 }
 
 #if !os(Linux)
