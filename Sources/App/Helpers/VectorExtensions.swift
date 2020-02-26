@@ -7,9 +7,8 @@
 //
 
 // CoreGraphics isn't available on Linux, but there's partial support for CGPoint and some of its siblings.
-// To get around this, I've created a typealias for CGPoint as CGVector (since CGVector doesn't exist on Linux), but
-// that then results in some duplication of things that both CGVector and CGPoint have in these extensions, so I'm
-// selectively compiling things on Linux
+// In this extension, CGVector is the most important omission, so I've covered a reimplementation of it as best I could.
+// But that should only be present on Linux as it's a reimplementation if it's elsewhere
 
 import Foundation
 #if os(macOS) || os(watchOS) || os(iOS) || os(tvOS)
@@ -79,19 +78,17 @@ extension CGPoint {
 		CGPoint(x: lhs.x + rhs.dx, y: lhs.y + rhs.dy)
 	}
 
-	static func - (lhs: CGPoint, rhs: CGVector) -> CGPoint {
-		lhs + rhs.inverted
-	}
-
-	#if !os(Linux)
 	static func + (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
 		lhs + rhs.vector
+	}
+
+	static func - (lhs: CGPoint, rhs: CGVector) -> CGPoint {
+		lhs + rhs.inverted
 	}
 
 	static func - (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
 		lhs + rhs.vector.inverted
 	}
-	#endif
 
 	/// multiply two points together
 	static func * (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
@@ -234,25 +231,6 @@ extension CGAffineTransform {
 }
 #endif
 
-#if os(Linux)
-typealias CGVector = CGPoint
-
-extension CGPoint {
-	var dx: CGFloat {
-		get { x }
-		set { x = newValue }
-	}
-	var dy: CGFloat {
-		get { y }
-		set { y = newValue }
-	}
-
-	init(dx: CGFloat, dy: CGFloat) {
-		self.init(x: dx, y: dy)
-	}
-}
-#endif
-
 extension CGVector {
 	var normalized: CGVector {
 		guard !(dx == dy && dx == 0) else { return CGVector(dx: 0, dy: 1) }
@@ -272,7 +250,6 @@ extension CGVector {
 		CGPoint.zero.distance(to: self.point, is: 1.0)
 	}
 
-	#if !os(Linux)
 	static func + (lhs: CGVector, rhs: CGVector) -> CGVector {
 		CGVector(dx: lhs.dx + rhs.dx, dy: lhs.dy + rhs.dy)
 	}
@@ -280,7 +257,6 @@ extension CGVector {
 	static func * (lhs: CGVector, rhs: CGFloat) -> CGVector {
 		CGVector(dx: lhs.dx * rhs, dy: lhs.dy * rhs)
 	}
-	#endif
 
 	/// 0 is facing right. Moves CCW
 	init(fromRadian radian: CGFloat) {
@@ -292,7 +268,6 @@ extension CGVector {
 		self.init(fromRadian: degree * (CGFloat.pi / 180))
 	}
 
-	#if !os(Linux)
 	init<IntNumber: BinaryInteger>(scalar: IntNumber) {
 		let value = CGFloat(scalar)
 		self.init(dx: value, dy: value)
@@ -302,17 +277,14 @@ extension CGVector {
 		let value = CGFloat(scalar)
 		self.init(dx: value, dy: value)
 	}
-	#endif
 }
 
-#if !os(Linux)
 extension CGVector: Hashable {
 	public func hash(into hasher: inout Hasher) {
 		hasher.combine(dx)
 		hasher.combine(dy)
 	}
 }
-#endif
 
 extension CGRect {
 	var maxXY: CGPoint {
@@ -357,3 +329,27 @@ extension ClosedRange where Bound: BinaryFloatingPoint {
 		return clipped ? Swift.min(Swift.max(normalValue / normalUpper, 0), 1) : normalValue / normalUpper
 	}
 }
+
+#if os(Linux)
+public struct CGVector {
+	public var dx: CGFloat
+	public var dy: CGFloat
+}
+
+extension CGVector {
+	public static let zero = CGVector(dx: 0, dy: 0)
+	public init(dx: Int, dy: Int) {
+		self.init(dx: CGFloat(dx), dy: CGFloat(dy))
+	}
+	public init(dx: Double, dy: Double) {
+		self.init(dx: CGFloat(dx), dy: CGFloat(dy))
+	}
+}
+
+extension CGVector: Equatable, CustomDebugStringConvertible, Codable {
+	public var debugDescription: String {
+		"(dx: \(dx), dy: \(dy))"
+	}
+}
+
+#endif
