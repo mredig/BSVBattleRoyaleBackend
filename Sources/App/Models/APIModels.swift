@@ -85,3 +85,18 @@ struct AttackContact: Content {
 	let vector: CGVector
 	let strength: CGFloat
 }
+
+struct DoodadRepresentation: Content {
+	let id: Int
+	let type: String
+	let position: CGPoint
+	let size: CGSize
+	let zRotation: CGFloat
+}
+
+struct RoomContents: Content {
+	let doodads: [DoodadRepresentation]
+}
+
+/// These require identical properties... for now
+typealias RoomContentRequest = MoveRequest

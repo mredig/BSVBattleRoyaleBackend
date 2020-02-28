@@ -17,6 +17,7 @@ public func routes(_ router: Router, userController: UserController, roomControl
 	bearer.post("initialize", use: roomController.initializePlayer)
 	bearer.post("move", use: roomController.moveToRoom)
 	bearer.post("playerinfo", use: userController.playerInfo)
+	bearer.post("roomcontents", use: roomController.getRoomContents)
 
 	// example using another controller
 //	let todoController = TodoController()

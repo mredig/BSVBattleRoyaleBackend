@@ -359,4 +359,17 @@ extension RoomController {
 			}
 		}
 	}
+
+	func getRoomContents(_ req: Request) throws -> Future<RoomContents> {
+		_ = try req.requireAuthenticated(User.self)
+
+		return try req.content.decode(RoomContentRequest.self).flatMap { roomRequest -> Future<RoomContents> in
+
+			guard let room = self.rooms[roomRequest.roomID] else {
+				throw HTTPError(identifier: "Invalid Room", reason: "Room doesn't exist or player not in requested room")
+			}
+
+			return req.future(room.contents)
+		}
+	}
 }

@@ -22,6 +22,11 @@ class Room {
 
 	let doodadSeed: UInt64
 	var doodads: [Doodad] = []
+
+	var contents: RoomContents {
+		RoomContents(doodads: doodads.map { $0.representation })
+	}
+
 	var connectedDirections: [CardinalDirection] {
 		Array(rooms.keys).sorted()
 	}
