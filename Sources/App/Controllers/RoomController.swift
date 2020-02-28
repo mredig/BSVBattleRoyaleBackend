@@ -14,8 +14,8 @@ public class RoomController {
 	var myRNG = MyRNG()
 	private var startingSeed: UInt64
 
-	let roomSize: CGFloat = 720
-	var roomMid: CGFloat { roomSize / 2 }
+	static let roomSize: CGFloat = 720
+	static var roomMid: CGFloat { roomSize / 2 }
 
 	private var _rooms: [Int: Room]?
 	var rooms: [Int: Room] {
@@ -34,7 +34,7 @@ public class RoomController {
 	var roomCoordinates = [CGPoint: Room]()
 	var allPlayers = [String: User]()
 
-	var spawnRoom = Room(id: 0, position: .zero, name: "Spawn Room")
+	var spawnRoom = Room(id: 0, position: .zero, name: "Spawn Room", doodadSeed: 0)
 
 	let userController: UserController
 
@@ -71,7 +71,7 @@ public class RoomController {
 			print("There was an error resetting player rooms: \(error)")
 		}
 
-		spawnRoom = Room(id: 0, name: "Spawn Room")
+		spawnRoom = Room(id: 0, name: "Spawn Room", doodadSeed: 0)
 		addRoomConnection(newRoom: spawnRoom, oldRoom: nil, direction: nil)
 	}
 
@@ -96,7 +96,7 @@ public class RoomController {
 
 			let possibleDirections = eligibleDirections(from: oldRoom)
 			guard let newDirection = myRNG.randomChoice(from: possibleDirections) else { continue }
-			let newRoom = Room(id: rooms.count, name: "Room \(rooms.count)")
+			let newRoom = Room(id: rooms.count, name: "Room \(rooms.count)", doodadSeed: seed)
 			addRoomConnection(newRoom: newRoom, oldRoom: oldRoom, direction: newDirection)
 			if eligibleDirections(from: newRoom).count > 0 {
 				roomQueue.enqueue(newRoom)
@@ -115,7 +115,7 @@ public class RoomController {
 
 			let possibleDirections = eligibleDirections(from: oldRoom, neighborsAllowed: 2)
 			guard let newDirection = myRNG.randomChoice(from: possibleDirections) else { continue }
-			let newRoom = Room(id: rooms.count, name: "Room \(rooms.count)")
+			let newRoom = Room(id: rooms.count, name: "Room \(rooms.count)", doodadSeed: seed)
 			addRoomConnection(newRoom: newRoom, oldRoom: oldRoom, direction: newDirection)
 			if myRNG.randomInt(max: 100) < 75 {
 				// connect the second door
@@ -219,6 +219,9 @@ public class RoomController {
 		allPlayers[player.playerID] = player
 		newRoom.addPlayer(player)
 
+		let roomSize = Self.roomSize
+		let roomMid = Self.roomMid
+
 		let position: CGPoint
 		if let direction = direction {
 			switch direction {
@@ -316,7 +319,7 @@ extension RoomController {
 	func initializePlayer(_ req: Request) throws -> Future<UserResponse> {
 		let user = try req.requireAuthenticated(User.self)
 
-		let mid = roomMid
+		let mid = Self.roomMid
 		return try req.content.decode(PlayerInitRepresentation.self).flatMap { initRep -> Future<UserResponse> in
 			let player = self.allPlayers[user.playerID] ?? user
 			if initRep.respawn || player.roomID == -1 {

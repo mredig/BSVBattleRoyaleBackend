@@ -20,14 +20,17 @@ class Room {
 	var players = Set<User>()
 	var occupied = false
 
+	let doodadSeed: UInt64
+	var doodads: [Doodad] = []
 	var connectedDirections: [CardinalDirection] {
 		Array(rooms.keys).sorted()
 	}
 
-	init(id: Int, position: CGPoint = .zero, name: String) {
+	init(id: Int, position: CGPoint = .zero, name: String, doodadSeed: UInt64) {
 		self.id = id
 		self.position = position
 		self.name = name
+		self.doodadSeed = doodadSeed
 	}
 
 	func connect(to room: Room, through direction: CardinalDirection) {
@@ -45,6 +48,7 @@ class Room {
 		players.insert(player)
 		player.roomID = id
 		occupied = !players.isEmpty
+		setupDoodads()
 	}
 
 	func removePlayer(_ player: User) {
@@ -59,6 +63,35 @@ class Room {
 			}
 		}
 		return nil
+	}
+
+	func setupDoodads() {
+		guard doodads.count == 0 else { return }
+		print("generating doodads for \(name)")
+		let thisRNG = MyRNG(seed: doodadSeed + UInt64(id))
+		let doodadsToGenerate = 5 + thisRNG.randomInt(max: 10)
+
+		while doodads.count < doodadsToGenerate {
+			let posX = thisRNG.randomInt(max: Int(RoomController.roomSize))
+			let posY = thisRNG.randomInt(max: Int(RoomController.roomSize))
+			let position = CGPoint(x: posX, y: posY)
+
+			let sizeMax = BoxDoodad.maxSize.width - BoxDoodad.minSize.width
+			let sizeRan = thisRNG.randomInt(max: Int(sizeMax))
+			let size = CGSize(scalar: sizeRan) + BoxDoodad.minSize
+
+			let floatGranularity: CGFloat = 10000
+			let rotationRangeInt = Int(CGFloat.pi * 2 * floatGranularity)
+			let rotationRandom = CGFloat(thisRNG.randomInt(max: rotationRangeInt)) / floatGranularity
+
+			let tempbox = BoxDoodad(position: position, size: size, zRotation: rotationRandom, id: doodads.count)
+
+			guard BoxDoodad.positioningIsValid(for: tempbox, otherDoodads: doodads) else { continue }
+
+			doodads.append(tempbox)
+		}
+
+		doodads.forEach { print($0) }
 	}
 }
 
