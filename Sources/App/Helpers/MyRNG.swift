@@ -16,7 +16,7 @@ class MyRNG {
 
 	func randomNumber(max: UInt64 = UInt64.max) -> UInt64 {
 		let a: UInt64 = 16807
-		let c: UInt64 = 0
+		let c: UInt64 = 12345
 		seed = (a * seed + c) % 2147483647
 		return seed % max
 	}
